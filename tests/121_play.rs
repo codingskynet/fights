@@ -18,7 +18,7 @@ fn run_121_play() {
 
         // print next command helper
         println!();
-        println!("You can enter 'action_type position_x position_y'");
+        println!("You can enter 'action_type position_x position_y'.");
         println!("Move(0): Move to specific position(absolute).");
         println!("PlaceWall(1(horizontal), 2(vertical)): Place wall horizontal(left position) or vertical(top position).");
         println!("RotateSection(3): Rotate the 4x4 local board w/o pawns. Enter the left-top position of the local board.");
