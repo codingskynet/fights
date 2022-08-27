@@ -43,6 +43,8 @@ fn run_121_play() {
         iter += 1;
     }
 
+    print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // clear terminal
+    println!("{}", state);
     println!("iters: {}", iter);
     if state.is_win() == 0 {
         println!("The player 0 is won!");

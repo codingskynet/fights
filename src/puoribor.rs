@@ -193,10 +193,10 @@ pub struct Env {}
 impl Env {
     // check if now and new is attached and there is no wall between them
     fn is_blocked_between(now: Position, new: Position, state: &State) -> bool {
-        now.1 > 0 && up(now) == new && state.board[0][now] == 1
-            || now.1 < 8 && down(now) == new && state.board[0][new] == 1
-            || now.0 > 0 && left(now) == new && state.board[1][now] == 1
-            || now.0 < 8 && right(now) == new && state.board[1][new] == 1
+        (now.1 > 0 && up(now) == new && state.board[0][now] == 1)
+            || (now.1 < 8 && down(now) == new && state.board[0][new] == 1)
+            || (now.0 > 0 && left(now) == new && state.board[1][now] == 1)
+            || (now.0 < 8 && right(now) == new && state.board[1][new] == 1)
     }
 
     fn is_pawn_can_win(agent_id: usize, state: &State) -> bool {
@@ -278,19 +278,25 @@ impl BaseEnv<State, Action> for Env {
                     // check straight jump over condition
                     if mid_pos(now, new) != opposite {
                         // check diagonal jump over condition
-                        let l_or_r_opposite = left(opposite) == new || right(opposite) == new;
-                        let u_or_d_opposite = up(opposite) == new || down(opposite) == new;
+                        let l_or_r_opposite = (now.0 > 0 && left(opposite) == new)
+                            || (now.0 < 8 && right(opposite) == new);
+                        let u_or_d_opposite = (now.1 > 0 && up(opposite) == new)
+                            || (now.0 < 8 && down(opposite) == new);
 
-                        if !((up(now) == opposite
+                        if !((now.1 > 0
+                            && up(now) == opposite
                             && state.board[0][opposite] == 1
                             && l_or_r_opposite)
-                            || (down(now) == opposite
+                            || (now.1 < 8
+                                && down(now) == opposite
                                 && state.board[0][down(opposite)] == 1
                                 && l_or_r_opposite)
-                            || (left(now) == opposite
+                            || (now.0 > 0
+                                && left(now) == opposite
                                 && state.board[1][opposite] == 1
                                 && u_or_d_opposite)
-                            || (right(now) == opposite
+                            || (now.0 < 8
+                                && right(now) == opposite
                                 && state.board[1][right(opposite)] == 1
                                 && u_or_d_opposite))
                         {
