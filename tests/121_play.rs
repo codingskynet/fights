@@ -12,7 +12,7 @@ fn run_121_play() {
     while state.is_win() == -1 {
         let agent_id = iter % 2;
 
-        print!("\x1b[1;1H");
+        print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // clear terminal
         println!("{}", state);
         println!("What do you do next, player {}?", agent_id);
 
@@ -21,7 +21,7 @@ fn run_121_play() {
         println!("You can enter 'action_type position_x position_y'");
         println!("Move(0): Move to specific position(absolute).");
         println!("PlaceWall(1(horizontal), 2(vertical)): Place wall horizontal(left position) or vertical(top position).");
-        println!("RotateSection(2): Rotate the 4x4 local board w/o pawns. Enter the left-top position of the local board.");
+        println!("RotateSection(3): Rotate the 4x4 local board w/o pawns. Enter the left-top position of the local board.");
 
         loop {
             print!(": ");

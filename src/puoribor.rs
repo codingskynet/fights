@@ -193,10 +193,10 @@ pub struct Env {}
 impl Env {
     // check if now and new is attached and there is no wall between them
     fn is_blocked_between(now: Position, new: Position, state: &State) -> bool {
-        up(now) == new && state.board[0][now] == 1
-            || down(now) == new && state.board[0][new] == 1
-            || left(now) == new && state.board[1][now] == 1
-            || right(now) == new && state.board[1][new] == 1
+        now.1 > 0 && up(now) == new && state.board[0][now] == 1
+            || now.1 < 8 && down(now) == new && state.board[0][new] == 1
+            || now.0 > 0 && left(now) == new && state.board[1][now] == 1
+            || now.0 < 8 && right(now) == new && state.board[1][new] == 1
     }
 
     fn is_pawn_can_win(agent_id: usize, state: &State) -> bool {
@@ -218,19 +218,19 @@ impl Env {
                 return true;
             }
 
-            if state.board[0][pos] != 1 {
+            if pos.1 > 0 && state.board[0][pos] != 1 {
                 queue.push_back(up(pos));
             }
 
-            if state.board[1][pos] != 1 {
-                queue.push_back(left(pos));
-            }
-
-            if state.board[0][down(pos)] != 1 {
+            if pos.1 < 8 && state.board[0][down(pos)] != 1 {
                 queue.push_back(down(pos));
             }
 
-            if state.board[1][right(pos)] != 1 {
+            if pos.0 > 0 && state.board[1][pos] != 1 {
+                queue.push_back(left(pos));
+            }
+
+            if pos.0 < 8 && state.board[1][right(pos)] != 1 {
                 queue.push_back(right(pos));
             }
         }
@@ -318,7 +318,7 @@ impl BaseEnv<State, Action> for Env {
 
                 let pos = action.position;
 
-                if pos.0 >= 9 || pos.1 >= 10 {
+                if pos.0 >= 8 || pos.1 >= 10 {
                     return Err!("PlaceWall: out of board");
                 }
 
@@ -348,7 +348,7 @@ impl BaseEnv<State, Action> for Env {
 
                 let pos = action.position;
 
-                if pos.0 >= 10 || pos.1 >= 9 {
+                if pos.0 >= 10 || pos.1 >= 8 {
                     return Err!("PlaceWall: out of board");
                 }
 
