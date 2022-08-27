@@ -4,7 +4,17 @@ use ndarray::Array2;
 
 use crate::envs::*;
 
-pub struct Action {}
+enum ActionType {
+    Move = 0,                  // move to absolute position
+    PlaceWallHorizontally = 1, // place horizontal wall with left position
+    PlaceWallVertically = 2,   // place vertical wall with top position
+    RotateSection = 3,         // rotate 4x4 section with top-left position
+}
+
+pub struct Action {
+    action_type: ActionType,
+    position: (usize, usize),
+}
 
 /*
  * Pouoribor's State
@@ -41,7 +51,11 @@ impl fmt::Display for State {
         let left_intersection_bottom = "└";
         let middle_intersection_bottom = "┴";
         let right_intersection_bottom = "┘";
-        let mut result = table_top.to_string() + "\n";
+        let mut result = format!(
+            "Remaing Walls\n - agent_0: {}\n - agent_1: {}\n",
+            self.remaning_walls.0, self.remaning_walls.1
+        ) + table_top
+            + "\n";
 
         for y in 0..9 {
             result += vertical_wall;
@@ -103,16 +117,16 @@ impl fmt::Display for State {
 
 impl State {
     pub fn new() -> Self {
-        let mut player0 = Array2::zeros([9, 9]);
-        player0[[4, 0]] = 1;
+        let mut player_0 = Array2::zeros([9, 9]);
+        player_0[[4, 0]] = 1;
 
-        let mut player1 = Array2::zeros([9, 9]);
-        player1[[4, 8]] = 1;
+        let mut player_1 = Array2::zeros([9, 9]);
+        player_1[[4, 8]] = 1;
 
         Self {
             board: [
-                player0,
-                player1,
+                player_0,
+                player_1,
                 Array2::zeros([9, 9]),
                 Array2::zeros([9, 9]),
             ],
@@ -135,22 +149,6 @@ impl BaseEnv<State, Action> for Env {
     }
 
     fn step(&mut self, state: State, agent_id: i32, action: Action) -> State {
-        todo!()
-    }
-}
-
-pub struct Agent {}
-
-impl BaseAgent<State, Action> for Agent {
-    fn env_id() -> (String, i32) {
-        todo!()
-    }
-
-    fn new() -> Self {
-        todo!()
-    }
-
-    fn next(&self, state: State) -> Action {
         todo!()
     }
 }
