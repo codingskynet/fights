@@ -28,7 +28,7 @@ Basic Rule(according to Quoridor):
 - On your turn, you can move your pawn, install wall, or rotate the local board.
   - You cannot drop out your turn.
 - The pawn can move to 4 directions(up, down, left, right).
-  - Your pawn can jump over that pawn if there is the other player's pawn toward chosen direction.
+  - Your pawn can jump over that pawn if there is the other pawn toward chosen direction. If there is a wall behind the other pawn which is in front of your pawn, you can jump diagonally.
   - Your pawn cannot move if there is a wall toward chosen direction.
 - You can install your wall anywhere.
   - You cannot install your wall if the other pawn cannot move to the winning area(the opposite side of the board) after installing.
@@ -54,7 +54,7 @@ Basic Rule(according to Quoridor):
 - 자신의 차례에서 말을 움직이거나, 장애물을 설치하거나, 보드를 회전시킬 수 있다.
   - 자신의 차례를 포기할 수 없다.
 - 말은 상, 하, 좌, 우 네 방향으로 한 칸씩 움직일 수 있다.
-  - 이동하려는 방향에 상대방 말이 있다면 뛰어 넘을 수 있다.
+  - 이동하려는 방향에 상대방 말이 있다면 뛰어 넘을 수 있다. 만약 상대 말 뒤에 벽이 있다면 대각선으로 뛰어 넘을 수 있다.
   - 이동하려는 방향에 장애물이 있다면 움직일 수 없다.
 - 장애물을 원하는 곳에 설치할 수 있다.
   - 상대가 빠져나갈 수 없는 경로를 만드는 경우에는 설치할 수 없다.

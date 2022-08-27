@@ -1,6 +1,6 @@
 use std::fmt;
 
-use ndarray::Array2;
+use ndarray::{Array, Array2};
 
 use crate::{envs::*, utils::*, Err};
 
@@ -161,8 +161,12 @@ impl BaseState for State {}
 pub struct Env {}
 
 impl Env {
-    fn is_pawn_in_wall(position: (usize, usize), board: &[Array2<u8>; 2]) -> bool {
-        todo!()
+    // check if now and new is attached and there is no wall between them
+    fn is_blocked_between(now: Position, new: Position, state: &State) -> bool {
+        up(now) == new && state.board[0][now] == 1
+            || down(now) == new && state.board[0][new] == 1
+            || left(now) == new && state.board[1][now] == 1
+            || right(now) == new && state.board[1][new] == 1
     }
 
     fn is_pawn_can_win(agent_id: usize, state: &State) -> bool {
@@ -195,15 +199,41 @@ impl BaseEnv<State, Action> for Env {
                 }
 
                 let diff = diff_pos(now, new);
-                if diff != 1 {
-                    // checking jump over condition
-                    if !(diff == 2 && mid_pos(now, new) == opposite) {
-                        return Err!("Move: should move one block, not zero or bigger than one.");
+                if diff == 1 {
+                    if Env::is_blocked_between(now, new, &state) {
+                        return Err!("Move: the movement is blocked by wall.");
                     }
-                }
+                } else if diff == 2 {
+                    if Env::is_blocked_between(now, opposite, &state)
+                        || Env::is_blocked_between(opposite, new, &state)
+                    {
+                        return Err!("Move: there is a wall between now pawn position, opposite pawn position, and new pawn position.");
+                    }
 
-                if Env::is_pawn_in_wall(new, &state.board) {
-                    return Err!("Move: cannot overlap the wall.");
+                    // check straight jump over condition
+                    if mid_pos(now, new) != opposite {
+                        // check diagonal jump over condition
+                        let l_or_r_opposite = left(opposite) == new || right(opposite) == new;
+                        let u_or_d_opposite = up(opposite) == new || down(opposite) == new;
+
+                        if !((up(now) == opposite
+                            && state.board[0][opposite] == 1
+                            && l_or_r_opposite)
+                            || (down(now) == opposite
+                                && state.board[0][down(opposite)] == 1
+                                && l_or_r_opposite)
+                            || (left(now) == opposite
+                                && state.board[1][opposite] == 1
+                                && u_or_d_opposite)
+                            || (right(now) == opposite
+                                && state.board[1][right(opposite)] == 1
+                                && u_or_d_opposite))
+                        {
+                            return Err!("Move: cannot jump straightly or diagonally.");
+                        }
+                    }
+                } else {
+                    return Err!("Move: should move one block, not zero or bigger than one.");
                 }
 
                 let players = if agent_id == 0 {
@@ -291,14 +321,42 @@ impl BaseEnv<State, Action> for Env {
                     return Err!("RotationSection: out of board");
                 }
 
+                // horizontal -> vertial: make position to (x, y) => (4 - y, x)
+                let mut new_vertial = Array2::zeros([5, 4]);
+
+                for y in 0..=4 {
+                    for x in 0..4 {
+                        new_vertial[[4 - y, x]] = state.board[0][[pos.0 + x, pos.1 + y]];
+                    }
+                }
+
+                // vertical -> horizontal: make positon to (x, y) => (3 - y, x)
+                let mut new_horizontal = Array2::zeros([4, 5]);
+
+                for y in 0..4 {
+                    for x in 0..=4 {
+                        new_horizontal[[3 - y, x]] = state.board[1][[pos.0 + x, pos.1 + y]];
+                    }
+                }
+
+                let mut state = state;
+
+                // apply them
+                for y in 0..=4 {
+                    for x in 0..4 {
+                        state.board[0][[pos.0 + x, pos.1 + y]] = new_horizontal[[x, y]];
+                    }
+                }
+
+                for y in 0..4 {
+                    for x in 0..=4 {
+                        state.board[1][[pos.0 + x, pos.1 + y]] = new_vertial[[x, y]];
+                    }
+                }
+
                 if !Env::is_pawn_can_win((agent_id + 1) % 2, &state) {
                     return Err!("Move: this can make for the other player not to win.");
                 }
-
-                // horizontal -> vertial: same positions(!)
-                let temp_new_vertial = state.board[0].clone();
-
-                // vertical -> horizonta: make positon to (x, y) => (x + 1, y)
 
                 Ok(state)
             }

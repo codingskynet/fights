@@ -5,9 +5,9 @@ macro_rules! Err {
     };
 }
 
-type Position = (usize, usize);
+pub type Position = (usize, usize);
 
-// calculate |x - y| that the norm is L_0
+// calculate ||x - y|| that the norm is L_0
 pub fn diff_pos(x: Position, y: Position) -> usize {
     x.0.abs_diff(y.0) + x.1.abs_diff(y.1)
 }
