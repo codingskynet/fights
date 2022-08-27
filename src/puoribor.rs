@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{collections::VecDeque, fmt};
 
 use ndarray::{Array, Array2};
 
@@ -170,7 +170,42 @@ impl Env {
     }
 
     fn is_pawn_can_win(agent_id: usize, state: &State) -> bool {
-        todo!()
+        let mut queue = VecDeque::new();
+
+        let win_y = if agent_id == 0 { 8 } else { 0 };
+        queue.push_back(state.players[agent_id]);
+
+        let mut visited = Array2::zeros([9, 9]);
+
+        while let Some(pos) = queue.pop_front() {
+            if visited[pos] == 1 {
+                continue;
+            }
+
+            visited[pos] = 1;
+
+            if pos.1 == win_y {
+                return true;
+            }
+
+            if state.board[0][pos] != 1 {
+                queue.push_back(up(pos));
+            }
+
+            if state.board[1][pos] != 1 {
+                queue.push_back(left(pos));
+            }
+
+            if state.board[0][down(pos)] != 1 {
+                queue.push_back(down(pos));
+            }
+
+            if state.board[1][right(pos)] != 1 {
+                queue.push_back(right(pos));
+            }
+        }
+
+        false
     }
 }
 
@@ -243,10 +278,6 @@ impl BaseEnv<State, Action> for Env {
                 };
 
                 let state = State { players, ..state };
-
-                if !Env::is_pawn_can_win((agent_id + 1) % 2, &state) {
-                    return Err!("Move: this can make for the other player not to win.");
-                }
 
                 Ok(state)
             }
