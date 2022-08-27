@@ -18,21 +18,25 @@ pub fn mid_pos(x: Position, y: Position) -> Position {
 }
 
 // move the position to up(y: -1)
+#[inline]
 pub fn up(p: Position) -> Position {
     (p.0, p.1 - 1)
 }
 
 // move the position to down(y: +1)
+#[inline]
 pub fn down(p: Position) -> Position {
     (p.0, p.1 + 1)
 }
 
 // move the position to left(x: -1)
+#[inline]
 pub fn left(p: Position) -> Position {
     (p.0 - 1, p.1)
 }
 
 // move the position to right(x: +1)
+#[inline]
 pub fn right(p: Position) -> Position {
     (p.0 + 1, p.1)
 }

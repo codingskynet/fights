@@ -1,19 +1,40 @@
 use std::{collections::VecDeque, fmt};
 
-use ndarray::{Array, Array2};
+use ndarray::Array2;
 
 use crate::{envs::*, utils::*, Err};
 
-enum ActionType {
+pub enum ActionType {
     Move = 0,                  // move to absolute position
     PlaceWallHorizontally = 1, // place horizontal wall with left position
     PlaceWallVertically = 2,   // place vertical wall with top position
     RotateSection = 3,         // rotate 4x4 section with top-left position
 }
 
+impl From<usize> for ActionType {
+    fn from(id: usize) -> Self {
+        match id {
+            0 => ActionType::Move,
+            1 => ActionType::PlaceWallHorizontally,
+            2 => ActionType::PlaceWallVertically,
+            3 => ActionType::RotateSection,
+            _ => panic!("Cannot parse id: {}", id),
+        }
+    }
+}
+
 pub struct Action {
     action_type: ActionType,
-    position: (usize, usize),
+    position: Position,
+}
+
+impl Action {
+    pub fn new(action_type: usize, position: Position) -> Self {
+        Self {
+            action_type: ActionType::from(action_type),
+            position,
+        }
+    }
 }
 
 /*
@@ -26,10 +47,11 @@ pub struct Action {
  *   - 1: one-hot encoded position of vertical walls (size: (10, 9))
  * - walls: the remaing walls on each player, (player 0's, player 1's)
  */
+#[derive(Clone)]
 pub struct State {
     players: [(usize, usize); 2],
     board: [Array2<u8>; 2],
-    remaning_walls: [usize; 2],
+    remaining_walls: [usize; 2],
 }
 
 impl fmt::Display for State {
@@ -37,7 +59,6 @@ impl fmt::Display for State {
         let left_intersection_top = "┌";
         let middle_intersection_top = "┬";
         let right_intersection_top = "┐";
-
         let vertical_wall = "│";
         let vertical_wall_bold = "┃";
         let horizontal_wall = "───";
@@ -49,8 +70,8 @@ impl fmt::Display for State {
         let middle_intersection_bottom = "┴";
         let right_intersection_bottom = "┘";
         let mut result = format!(
-            "Remaing Walls\n - agent_0: {}\n - agent_1: {}\n",
-            self.remaning_walls[0], self.remaning_walls[1]
+            "Remaining Walls\n - agent_0: {}\n - agent_1: {}\n",
+            self.remaining_walls[0], self.remaining_walls[1]
         );
 
         result += left_intersection_top;
@@ -78,20 +99,20 @@ impl fmt::Display for State {
 
             // display pawn and vertical wall
             for x in 0..9 {
-                if self.players[0] == (x, y) {
-                    result += " 0 ";
+                result += if self.players[0] == (x, y) {
+                    " 0 "
                 } else if self.players[1] == (x, y) {
-                    result += " 1 ";
+                    " 1 "
                 } else {
-                    result += "   ";
-                }
+                    "   "
+                };
 
                 if x < 8 {
-                    if self.board[1][[x + 1, y]] == 1 {
-                        result += vertical_wall_bold;
+                    result += if self.board[1][[x + 1, y]] == 1 {
+                        vertical_wall_bold
                     } else {
-                        result += " ";
-                    }
+                        " "
+                    };
                 }
             }
 
@@ -108,11 +129,11 @@ impl fmt::Display for State {
                 result += left_intersection;
 
                 for x in 0..9 {
-                    if self.board[0][[x, y + 1]] == 1 {
-                        result += horizontal_wall_bold;
+                    result += if self.board[0][[x, y + 1]] == 1 {
+                        horizontal_wall_bold
                     } else {
-                        result += "   ";
-                    }
+                        "   "
+                    };
 
                     if x < 8 {
                         result += middle_intersection
@@ -128,12 +149,11 @@ impl fmt::Display for State {
         result = result + left_intersection_bottom;
 
         for x in 0..9 {
-            result = result
-                + if self.board[0][[x, 9]] == 1 {
-                    horizontal_wall_bold
-                } else {
-                    horizontal_wall
-                };
+            result += if self.board[0][[x, 9]] == 1 {
+                horizontal_wall_bold
+            } else {
+                horizontal_wall
+            };
 
             if x < 8 {
                 result += middle_intersection_bottom;
@@ -151,7 +171,17 @@ impl State {
         Self {
             players: [(4, 0), (4, 8)],
             board: [Array2::zeros([9, 10]), Array2::zeros([10, 9])],
-            remaning_walls: [10, 10],
+            remaining_walls: [10, 10],
+        }
+    }
+
+    pub fn is_win(&self) -> isize {
+        if self.players[0].1 == 8 {
+            0
+        } else if self.players[1].1 == 0 {
+            1
+        } else {
+            -1
         }
     }
 }
@@ -218,7 +248,7 @@ impl BaseEnv<State, Action> for Env {
         State::new()
     }
 
-    fn step(&mut self, state: State, agent_id: usize, action: Action) -> Result<State, String> {
+    fn step(state: State, agent_id: usize, action: Action) -> Result<State, String> {
         match action.action_type {
             ActionType::Move => {
                 let opposite = state.players[(agent_id + 1) % 2];
@@ -282,7 +312,7 @@ impl BaseEnv<State, Action> for Env {
                 Ok(state)
             }
             ActionType::PlaceWallHorizontally => {
-                if state.remaning_walls[agent_id] == 0 {
+                if state.remaining_walls[agent_id] == 0 {
                     return Err!("PlaceWall: there is no remaing wall for the agent.");
                 }
 
@@ -301,7 +331,7 @@ impl BaseEnv<State, Action> for Env {
                 }
 
                 let mut state = state;
-                state.remaning_walls[agent_id] -= 1;
+                state.remaining_walls[agent_id] -= 1;
                 state.board[0][pos] = 1;
                 state.board[0][right(pos)] = 1;
 
@@ -312,7 +342,7 @@ impl BaseEnv<State, Action> for Env {
                 Ok(state)
             }
             ActionType::PlaceWallVertically => {
-                if state.remaning_walls[agent_id] == 0 {
+                if state.remaining_walls[agent_id] == 0 {
                     return Err!("PlaceWall: there is no remaing wall for the agent.");
                 }
 
@@ -331,7 +361,7 @@ impl BaseEnv<State, Action> for Env {
                 }
 
                 let mut state = state;
-                state.remaning_walls[agent_id] -= 1;
+                state.remaining_walls[agent_id] -= 1;
                 state.board[1][pos] = 1;
                 state.board[1][down(pos)] = 1;
 
@@ -342,7 +372,7 @@ impl BaseEnv<State, Action> for Env {
                 Ok(state)
             }
             ActionType::RotateSection => {
-                if state.remaning_walls[agent_id] <= 1 {
+                if state.remaining_walls[agent_id] <= 1 {
                     return Err!("RotationSection: there is no remainng wall for the agent.");
                 }
 
