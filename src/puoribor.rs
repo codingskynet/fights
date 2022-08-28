@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, fmt};
+use std::{collections::VecDeque, fmt, hash::Hash};
 
 use ndarray::Array2;
 
@@ -49,7 +49,7 @@ impl Action {
  *   - 1: one-hot encoded position of vertical walls (size: (10, 9))
  * - walls: the remaing walls on each player, (player 0's, player 1's)
  */
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash)]
 pub struct State {
     pub players: [(usize, usize); 2],
     pub board: [Array2<u8>; 2],
