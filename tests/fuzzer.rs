@@ -5,6 +5,7 @@ use fights::{
     puoribor::{self, Action},
 };
 use rand::{rngs::StdRng, Rng, SeedableRng};
+use rayon::prelude::*;
 
 fn get_all_available_move(state: &puoribor::State, agent_id: usize) -> Vec<Action> {
     (0..9)
@@ -133,12 +134,14 @@ fn random_play_with_seed(seed: u64, delay: u64, slient: bool) {
 
 #[test]
 fn random_play() {
-    random_play_with_seed(308, 100, false);
+    random_play_with_seed(5468, 100, false);
 }
 
 #[test]
 fn fuzzer() {
-    for i in 0..1_000_000 {
-        random_play_with_seed(i, 0, true);
-    }
+    (0..1_000_000)
+        .collect::<Vec<u64>>()
+        .par_iter()
+        .map(|i| random_play_with_seed(*i, 0, true))
+        .collect::<Vec<()>>();
 }

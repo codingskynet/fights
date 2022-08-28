@@ -299,22 +299,22 @@ impl BaseEnv<State, Action> for Env {
 
                         if !((now.1 > 0
                             && up(now) == opposite
-                            && state.board[0][opposite] == 1
+                            && (state.board[0][opposite] == 1 || opposite.1 == 0)
                             && (now.0 > 0 && left(opposite) == new)
                             || (now.0 < 8 && right(opposite) == new))
                             || (now.1 < 8
                                 && down(now) == opposite
-                                && state.board[0][down(opposite)] == 1
+                                && (state.board[0][down(opposite)] == 1 || opposite.1 == 8)
                                 && (now.0 > 0 && left(opposite) == new)
                                 || (now.0 < 8 && right(opposite) == new))
                             || (now.0 > 0
                                 && left(now) == opposite
-                                && state.board[1][opposite] == 1
+                                && (state.board[1][opposite] == 1 || opposite.0 == 0)
                                 && (now.1 > 0 && up(opposite) == new)
                                 || (now.0 < 8 && down(opposite) == new))
                             || (now.0 < 8
                                 && right(now) == opposite
-                                && state.board[1][right(opposite)] == 1
+                                && (state.board[1][right(opposite)] == 1 || opposite.0 == 8)
                                 && (now.1 > 0 && up(opposite) == new)
                                 || (now.0 < 8 && down(opposite) == new)))
                         {
