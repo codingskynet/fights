@@ -350,7 +350,7 @@ impl BaseEnv<State, Action> for Env {
                     return Err!("PlaceWall: there is already horizontal wall.");
                 }
 
-                if state.board[1][pos] == 1 && state.board[1][down(pos)] == 1 {
+                if state.board[1][pos] == 1 && pos.1 < 8 && state.board[1][down(pos)] == 1 {
                     return Err!("PlaceWall: cannot install wall intersecting.");
                 }
 
@@ -380,7 +380,7 @@ impl BaseEnv<State, Action> for Env {
                     return Err!("PlaceWall: there is already vertical wall.");
                 }
 
-                if state.board[0][pos] == 1 && state.board[0][right(pos)] == 1 {
+                if state.board[0][pos] == 1 && pos.0 < 8 && state.board[0][right(pos)] == 1 {
                     return Err!("PlaceWall: cannot install wall intersecting.");
                 }
 
