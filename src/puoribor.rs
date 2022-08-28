@@ -296,27 +296,27 @@ impl BaseEnv<State, Action> for Env {
                     // check straight jump over condition
                     if !is_mid_pos(now, opposite, new) {
                         // check diagonal jump over condition
-                        let l_or_r_opposite = (now.0 > 0 && left(opposite) == new)
-                            || (now.0 < 8 && right(opposite) == new);
-                        let u_or_d_opposite = (now.1 > 0 && up(opposite) == new)
-                            || (now.0 < 8 && down(opposite) == new);
 
                         if !((now.1 > 0
                             && up(now) == opposite
                             && state.board[0][opposite] == 1
-                            && l_or_r_opposite)
+                            && (now.0 > 0 && left(opposite) == new)
+                            || (now.0 < 8 && right(opposite) == new))
                             || (now.1 < 8
                                 && down(now) == opposite
                                 && state.board[0][down(opposite)] == 1
-                                && l_or_r_opposite)
+                                && (now.0 > 0 && left(opposite) == new)
+                                || (now.0 < 8 && right(opposite) == new))
                             || (now.0 > 0
                                 && left(now) == opposite
                                 && state.board[1][opposite] == 1
-                                && u_or_d_opposite)
+                                && (now.1 > 0 && up(opposite) == new)
+                                || (now.0 < 8 && down(opposite) == new))
                             || (now.0 < 8
                                 && right(now) == opposite
                                 && state.board[1][right(opposite)] == 1
-                                && u_or_d_opposite))
+                                && (now.1 > 0 && up(opposite) == new)
+                                || (now.0 < 8 && down(opposite) == new)))
                         {
                             return Err!("Move: cannot jump straightly or diagonally.");
                         }

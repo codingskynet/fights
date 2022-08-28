@@ -5,7 +5,7 @@ use fights::puoribor;
 use ndarray::Array2;
 use text_io::scan;
 
-fn get_all_available_movement(state: &puoribor::State, agent_id: usize) -> Vec<(usize, usize)> {
+fn get_all_available_move(state: &puoribor::State, agent_id: usize) -> Vec<(usize, usize)> {
     (0..9)
         .flat_map(|y| (0..9).map(move |x| (x, y)))
         .filter_map(|pos| {
@@ -63,7 +63,7 @@ fn run_121_play() {
                     }
                 }
                 4 => {
-                    let pos_list = get_all_available_movement(&state, agent_id);
+                    let pos_list = get_all_available_move(&state, agent_id);
 
                     let mut marker_board = Array2::zeros([9, 9]);
 
