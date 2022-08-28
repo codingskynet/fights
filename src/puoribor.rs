@@ -4,6 +4,7 @@ use ndarray::Array2;
 
 use crate::{envs::*, utils::*, Err};
 
+#[derive(Debug, Clone)]
 pub enum ActionType {
     Move = 0,                  // move to absolute position
     PlaceWallHorizontally = 1, // place horizontal wall with left position
@@ -23,6 +24,7 @@ impl From<usize> for ActionType {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Action {
     action_type: ActionType,
     position: Position,
@@ -47,11 +49,11 @@ impl Action {
  *   - 1: one-hot encoded position of vertical walls (size: (10, 9))
  * - walls: the remaing walls on each player, (player 0's, player 1's)
  */
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct State {
-    players: [(usize, usize); 2],
-    board: [Array2<u8>; 2],
-    remaining_walls: [usize; 2],
+    pub players: [(usize, usize); 2],
+    pub board: [Array2<u8>; 2],
+    pub remaining_walls: [usize; 2],
 }
 
 impl fmt::Display for State {
