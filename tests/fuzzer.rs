@@ -130,7 +130,7 @@ fn random_play_with_seed(seed: u64, delay: u64, slient: bool) {
 
 #[test]
 fn random_play() {
-    random_play_with_seed(86548, 0, false);
+    random_play_with_seed(0, 0, false);
 }
 
 #[test]

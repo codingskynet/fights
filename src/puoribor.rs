@@ -342,7 +342,7 @@ impl BaseEnv<State, Action> for Env {
 
                 let pos = action.position;
 
-                if pos.0 >= 8 || pos.1 >= 10 {
+                if pos.0 >= 8 || pos.1 == 0 || pos.1 >= 9 {
                     return Err!("PlaceWallHorizontally: out of board");
                 }
 
@@ -378,7 +378,7 @@ impl BaseEnv<State, Action> for Env {
 
                 let pos = action.position;
 
-                if pos.0 >= 10 || pos.1 >= 8 {
+                if pos.0 == 0 || pos.0 >= 9 || pos.1 >= 8 {
                     return Err!("PlaceWallVertically: out of board");
                 }
 
@@ -447,6 +447,14 @@ impl BaseEnv<State, Action> for Env {
                     for x in 0..=4 {
                         state.board[1][[pos.0 + x, pos.1 + y]] = new_vertial[[x, y]];
                     }
+                }
+
+                // remove the edge walls
+                for i in 0..9 {
+                    state.board[0][[i, 0]] = 0;
+                    state.board[0][[i, 9]] = 0;
+                    state.board[1][[0, i]] = 0;
+                    state.board[1][[9, i]] = 0;
                 }
 
                 if !(Env::is_pawn_can_win(agent_id, &state)

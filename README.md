@@ -22,6 +22,7 @@ New rule:
   - But, this action cannot be allowed if the other pawn cannot move to the winning area(the opposite side of the board) by obeying the original game rule.
   - If there is a wall crossing the side of the local board, the wall of size 2 splits into each walls of size 1.
   - You cannot rotate local board that some part is outside of the main board.
+  - The wall is removed if the wall is moved to the edge of board after rotating.
 
 
 Basic Rule(according to Quoridor):
@@ -49,6 +50,8 @@ Basic Rule(according to Quoridor):
   - 단, 쿼리도의 기본 규칙을 따라 상대가 빠져나갈 수 없는 경로를 만드는 경우에는 둘 수 없는 행위이다.
   - 4x4 크기의 보드를 돌리는 중에 2칸짜리 장애물이 걸쳐져 있다면, 부서지고 각각 길이가 1인 장애물로 분해가 된다.
   - 4x4 크기의 보드는 메인 보드 안에 있는 보드여야 한다. 즉, 일부가 메인 보드 밖에 걸쳐져 있으면 안 된다.
+  - 회전으로 인해 존재한 장애물이 보드의 모서리로 간다면, 그 장애물은 삭제된다.
+
 
 기본 규칙(쿼리도의 룰을 따른다):
 - 자신의 차례에서 말을 움직이거나, 장애물을 설치하거나, 보드를 회전시킬 수 있다.
@@ -59,5 +62,6 @@ Basic Rule(according to Quoridor):
 - 장애물을 원하는 곳에 설치할 수 있다.
   - 상대가 빠져나갈 수 없는 경로를 만드는 경우에는 설치할 수 없다.
   - 장애물을 겹치거나, 서로 가로지르게(즉, +가 되도록) 설치할 수 없다.
+  - 보드의 모서리 부분에 장애물을 배치할 수 없다.
   - 보드 밖을 나가도록(즉, 보드에 한 칸만 걸쳐지도록) 장애물을 설치할 수 없다.
 - 어느 플레이어의 말이 반대편 보드의 끝에 도달하면 승리하고 게임이 종료된다.
