@@ -12,9 +12,13 @@ pub fn diff_pos(x: Position, y: Position) -> usize {
     x.0.abs_diff(y.0) + x.1.abs_diff(y.1)
 }
 
-// calculate the middle position: (x + y) / 2
-pub fn mid_pos(x: Position, y: Position) -> Position {
-    ((x.0 + y.0) / 2, (x.1 + y.1) / 2)
+// calculate if the b is between a and c
+pub fn is_mid_pos(a: Position, b: Position, c: Position) -> bool {
+    if a.0 == c.0 || a.1 == c.1 {
+        b == ((a.0 + c.0) / 2, (a.1 + c.1) / 2)
+    } else {
+        false
+    }
 }
 
 // move the position to up(y: -1)

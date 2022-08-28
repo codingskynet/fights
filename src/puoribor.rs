@@ -80,8 +80,6 @@ impl State {
     }
 
     pub fn display_with(&self, marker_board: Option<(&str, Array2<u8>)>) -> String {
-        let is_mark = marker_board.is_some();
-
         let left_intersection_top = "┌";
         let middle_intersection_top = "┬";
         let right_intersection_top = "┐";
@@ -100,6 +98,13 @@ impl State {
             self.remaining_walls[0], self.remaining_walls[1]
         );
 
+        // display x coordinate
+        result += "    ";
+        for x in 0..9 {
+            result += &format!(" {}  ", x);
+        }
+        result += " \n   ";
+
         result += left_intersection_top;
 
         for x in 0..9 {
@@ -117,6 +122,7 @@ impl State {
         result = result + right_intersection_top + "\n";
 
         for y in 0..9 {
+            result += &format!(" {} ", y);
             result += if self.board[1][[0, y]] == 1 {
                 vertical_wall_bold
             } else {
@@ -155,6 +161,7 @@ impl State {
 
             // display horizontal wall
             if y < 8 {
+                result += "   ";
                 result += left_intersection;
 
                 for x in 0..9 {
@@ -175,7 +182,7 @@ impl State {
         }
 
         // display the end bottom line
-        result = result + left_intersection_bottom;
+        result = result + "   " + left_intersection_bottom;
 
         for x in 0..9 {
             result += if self.board[0][[x, 9]] == 1 {
@@ -285,7 +292,7 @@ impl BaseEnv<State, Action> for Env {
                     }
 
                     // check straight jump over condition
-                    if mid_pos(now, new) != opposite {
+                    if !is_mid_pos(now, opposite, new) {
                         // check diagonal jump over condition
                         let l_or_r_opposite = (now.0 > 0 && left(opposite) == new)
                             || (now.0 < 8 && right(opposite) == new);

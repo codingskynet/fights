@@ -47,7 +47,7 @@ fn run_121_play() {
                     println!("Move(0): Move to specific position.");
                     println!("PlaceWall(1(horizontal), 2(vertical)): Place wall horizontal(left position) or vertical(top position).");
                     println!("RotateSection(3): Rotate the 4x4 local board w/o pawns. Enter the left-top position of the local board.");
-                    println!("Show next able moving(4): Print on next available movement on board by O mark.");
+                    println!("Show next able moving(4): Print on next available movement on board by X mark.");
                 }
                 0..=3 => {
                     let (pos_x, pos_y): (usize, usize);
@@ -71,7 +71,7 @@ fn run_121_play() {
                         marker_board[pos] = 1;
                     }
 
-                    println!("{}", state.display_with(Some(("O", marker_board))));
+                    println!("{}", state.display_with(Some(("X", marker_board))));
                 }
                 _ => {
                     println!("Invalid command type. Please re-enter.");
