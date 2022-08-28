@@ -337,21 +337,23 @@ impl BaseEnv<State, Action> for Env {
             }
             ActionType::PlaceWallHorizontally => {
                 if state.remaining_walls[agent_id] == 0 {
-                    return Err!("PlaceWall: there is no remaing wall for the agent.");
+                    return Err!("PlaceWallHorizontally: there is no remaing wall for the agent.");
                 }
 
                 let pos = action.position;
 
                 if pos.0 >= 8 || pos.1 >= 10 {
-                    return Err!("PlaceWall: out of board");
+                    return Err!("PlaceWallHorizontally: out of board");
                 }
 
                 if state.board[0][pos] == 1 || state.board[0][right(pos)] == 1 {
-                    return Err!("PlaceWall: there is already horizontal wall.");
+                    return Err!("PlaceWallHorizontally: there is already horizontal wall.");
                 }
 
                 if state.board[1][pos] == 1 && pos.1 < 8 && state.board[1][down(pos)] == 1 {
-                    return Err!("PlaceWall: cannot install horizontal wall intersecting.");
+                    return Err!(
+                        "PlaceWallHorizontally: cannot install horizontal wall intersecting."
+                    );
                 }
 
                 let mut state = state;
@@ -359,29 +361,33 @@ impl BaseEnv<State, Action> for Env {
                 state.board[0][pos] = 1;
                 state.board[0][right(pos)] = 1;
 
-                if !Env::is_pawn_can_win((agent_id + 1) % 2, &state) {
-                    return Err!("Move: this can make for the other player not to win.");
+                if !(Env::is_pawn_can_win(agent_id, &state)
+                    && Env::is_pawn_can_win((agent_id + 1) % 2, &state))
+                {
+                    return Err!(
+                        "PlaceWallHorizontally: this can make for the other player not to win."
+                    );
                 }
 
                 Ok(state)
             }
             ActionType::PlaceWallVertically => {
                 if state.remaining_walls[agent_id] == 0 {
-                    return Err!("PlaceWall: there is no remaing wall for the agent.");
+                    return Err!("PlaceWallVertically: there is no remaing wall for the agent.");
                 }
 
                 let pos = action.position;
 
                 if pos.0 >= 10 || pos.1 >= 8 {
-                    return Err!("PlaceWall: out of board");
+                    return Err!("PlaceWallVertically: out of board");
                 }
 
                 if state.board[1][pos] == 1 || state.board[1][down(pos)] == 1 {
-                    return Err!("PlaceWall: there is already vertical wall.");
+                    return Err!("PlaceWallVertically: there is already vertical wall.");
                 }
 
                 if state.board[0][pos] == 1 && pos.0 < 8 && state.board[0][right(pos)] == 1 {
-                    return Err!("PlaceWall: cannot install vertical wall intersecting.");
+                    return Err!("PlaceWallVertically: cannot install vertical wall intersecting.");
                 }
 
                 let mut state = state;
@@ -389,8 +395,12 @@ impl BaseEnv<State, Action> for Env {
                 state.board[1][pos] = 1;
                 state.board[1][down(pos)] = 1;
 
-                if !Env::is_pawn_can_win((agent_id + 1) % 2, &state) {
-                    return Err!("Move: this can make for the other player not to win.");
+                if !(Env::is_pawn_can_win(agent_id, &state)
+                    && Env::is_pawn_can_win((agent_id + 1) % 2, &state))
+                {
+                    return Err!(
+                        "PlaceWallVertically: this can make for the other player not to win."
+                    );
                 }
 
                 Ok(state)
@@ -439,8 +449,10 @@ impl BaseEnv<State, Action> for Env {
                     }
                 }
 
-                if !Env::is_pawn_can_win((agent_id + 1) % 2, &state) {
-                    return Err!("Move: this can make for the other player not to win.");
+                if !(Env::is_pawn_can_win(agent_id, &state)
+                    && Env::is_pawn_can_win((agent_id + 1) % 2, &state))
+                {
+                    return Err!("RotationSection: this can make for the other player not to win.");
                 }
 
                 Ok(state)

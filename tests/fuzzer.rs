@@ -64,7 +64,15 @@ fn get_all_available_rotate_section(state: &puoribor::State, agent_id: usize) ->
 
     (0..6)
         .flat_map(|y| (0..6).map(move |x| (x, y)))
-        .map(|pos| Action::new(3, pos))
+        .filter_map(|pos| {
+            let action = puoribor::Action::new(3, pos);
+
+            if puoribor::Env::step(state.clone(), agent_id, action.clone()).is_ok() {
+                Some(action)
+            } else {
+                None
+            }
+        })
         .collect::<Vec<Action>>()
 }
 
@@ -77,24 +85,29 @@ fn get_all_available_action(state: &puoribor::State, agent_id: usize) -> Vec<Act
     .concat()
 }
 
-#[test]
-fn random_play() {
+fn random_play_with_seed(seed: u64, delay: u64, slient: bool) {
+    if slient {
+        println!("seed: {}", seed);
+    }
+
     let mut state = puoribor::Env::initialize_state();
-    let mut rng = StdRng::seed_from_u64(0);
+    let mut rng = StdRng::seed_from_u64(seed);
 
     let mut iter = 0;
     while state.is_win() == -1 {
-        thread::sleep(Duration::from_millis(10));
+        thread::sleep(Duration::from_millis(delay));
 
         let agent_id = iter % 2;
-
-        print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // clear terminal
-        println!("{}", state);
 
         let actions = get_all_available_action(&state, agent_id);
         let action = actions[rng.gen_range(0..actions.len())].clone();
 
-        println!("Do: {:?}", action);
+        if !slient {
+            print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // clear terminal
+            println!("seed: {}", seed);
+            println!("{}", state);
+            println!("Will do: {:?}", action);
+        }
 
         match puoribor::Env::step(state.clone(), agent_id, action) {
             Ok(new_state) => {
@@ -106,12 +119,26 @@ fn random_play() {
         iter += 1;
     }
 
-    print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // clear terminal
-    println!("{}", state);
-    println!("iters: {}", iter);
-    if state.is_win() == 0 {
-        println!("The player 0 is won!");
-    } else {
-        println!("The player 1 is won!");
+    if !slient {
+        print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // clear terminal
+        println!("{}", state);
+        println!("iters: {}", iter);
+        if state.is_win() == 0 {
+            println!("The player 0 is won!");
+        } else {
+            println!("The player 1 is won!");
+        }
+    }
+}
+
+#[test]
+fn random_play() {
+    random_play_with_seed(308, 100, false);
+}
+
+#[test]
+fn fuzzer() {
+    for i in 0..1_000_000 {
+        random_play_with_seed(i, 0, true);
     }
 }
