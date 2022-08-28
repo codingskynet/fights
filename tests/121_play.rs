@@ -2,7 +2,21 @@ use std::io::{self, Write};
 
 use fights::envs::BaseEnv;
 use fights::puoribor;
+use ndarray::Array2;
 use text_io::scan;
+
+fn get_all_available_movement(state: &puoribor::State, agent_id: usize) -> Vec<(usize, usize)> {
+    (0..9)
+        .flat_map(|y| (0..9).map(move |x| (x, y)))
+        .filter_map(|pos| {
+            if puoribor::Env::step(state.clone(), agent_id, puoribor::Action::new(0, pos)).is_ok() {
+                Some(pos)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<(usize, usize)>>()
+}
 
 #[test]
 fn run_121_play() {
@@ -17,26 +31,51 @@ fn run_121_play() {
         println!("What do you do next, player {}?", agent_id);
 
         // print next command helper
-        println!();
-        println!("You can enter 'action_type position_x position_y'.");
-        println!("Move(0): Move to specific position(absolute).");
-        println!("PlaceWall(1(horizontal), 2(vertical)): Place wall horizontal(left position) or vertical(top position).");
-        println!("RotateSection(3): Rotate the 4x4 local board w/o pawns. Enter the left-top position of the local board.");
+        println!("If you want to show command helper, just enter -1.");
 
         loop {
             print!(": ");
             io::stdout().flush().unwrap();
 
-            let (action_type, pos_x, pos_y): (usize, usize, usize);
-            scan!("{} {} {}", action_type, pos_x, pos_y);
-            let action = puoribor::Action::new(action_type, (pos_x, pos_y));
+            let command_type: i32;
 
-            match puoribor::Env::step(state.clone(), agent_id, action) {
-                Ok(new_state) => {
-                    state = new_state;
-                    break;
+            scan!("{}", command_type);
+
+            match command_type {
+                -1 => {
+                    println!("You can enter 'action_type position_x position_y', whose position is aboslute starting from top-left.");
+                    println!("Move(0): Move to specific position.");
+                    println!("PlaceWall(1(horizontal), 2(vertical)): Place wall horizontal(left position) or vertical(top position).");
+                    println!("RotateSection(3): Rotate the 4x4 local board w/o pawns. Enter the left-top position of the local board.");
+                    println!("Show next able moving(4): Print on next available movement on board by O mark.");
                 }
-                Err(err_reason) => println!("{} Try again!", err_reason),
+                0..=3 => {
+                    let (pos_x, pos_y): (usize, usize);
+                    scan!("{} {}", pos_x, pos_y);
+                    let action = puoribor::Action::new(command_type as usize, (pos_x, pos_y));
+
+                    match puoribor::Env::step(state.clone(), agent_id, action) {
+                        Ok(new_state) => {
+                            state = new_state;
+                            break;
+                        }
+                        Err(err_reason) => println!("{} Try again!", err_reason),
+                    }
+                }
+                4 => {
+                    let pos_list = get_all_available_movement(&state, agent_id);
+
+                    let mut marker_board = Array2::zeros([9, 9]);
+
+                    for pos in pos_list {
+                        marker_board[pos] = 1;
+                    }
+
+                    println!("{}", state.display_with(Some(("O", marker_board))));
+                }
+                _ => {
+                    println!("Invalid command type. Please re-enter.");
+                }
             }
         }
 

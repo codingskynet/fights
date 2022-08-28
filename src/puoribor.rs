@@ -56,6 +56,32 @@ pub struct State {
 
 impl fmt::Display for State {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.display_with(None))
+    }
+}
+
+impl State {
+    pub fn new() -> Self {
+        Self {
+            players: [(4, 0), (4, 8)],
+            board: [Array2::zeros([9, 10]), Array2::zeros([10, 9])],
+            remaining_walls: [10, 10],
+        }
+    }
+
+    pub fn is_win(&self) -> isize {
+        if self.players[0].1 == 8 {
+            0
+        } else if self.players[1].1 == 0 {
+            1
+        } else {
+            -1
+        }
+    }
+
+    pub fn display_with(&self, marker_board: Option<(&str, Array2<u8>)>) -> String {
+        let is_mark = marker_board.is_some();
+
         let left_intersection_top = "┌";
         let middle_intersection_top = "┬";
         let right_intersection_top = "┐";
@@ -99,13 +125,16 @@ impl fmt::Display for State {
 
             // display pawn and vertical wall
             for x in 0..9 {
-                result += if self.players[0] == (x, y) {
-                    " 0 "
+                result = result + " " + if self.players[0] == (x, y) {
+                    "0"
                 } else if self.players[1] == (x, y) {
-                    " 1 "
+                    "1"
+                } else if let Some((marker, ref board)) = marker_board && board[[x, y]] == 1 {
+                   marker
                 } else {
-                    "   "
-                };
+                   " "
+                }
+                + " ";
 
                 if x < 8 {
                     result += if self.board[1][[x + 1, y]] == 1 {
@@ -162,27 +191,7 @@ impl fmt::Display for State {
 
         result = result + right_intersection_bottom;
 
-        f.write_str(&result)
-    }
-}
-
-impl State {
-    pub fn new() -> Self {
-        Self {
-            players: [(4, 0), (4, 8)],
-            board: [Array2::zeros([9, 10]), Array2::zeros([10, 9])],
-            remaining_walls: [10, 10],
-        }
-    }
-
-    pub fn is_win(&self) -> isize {
-        if self.players[0].1 == 8 {
-            0
-        } else if self.players[1].1 == 0 {
-            1
-        } else {
-            -1
-        }
+        result
     }
 }
 
