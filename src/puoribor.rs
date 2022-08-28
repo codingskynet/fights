@@ -4,7 +4,7 @@ use ndarray::Array2;
 
 use crate::{envs::*, utils::*, Err};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ActionType {
     Move = 0,                  // move to absolute position
     PlaceWallHorizontally = 1, // place horizontal wall with left position
@@ -24,7 +24,7 @@ impl From<usize> for ActionType {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Action {
     action_type: ActionType,
     position: Position,
@@ -49,7 +49,7 @@ impl Action {
  *   - 1: one-hot encoded position of vertical walls (size: (10, 9))
  * - walls: the remaing walls on each player, (player 0's, player 1's)
  */
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone, Hash, PartialEq)]
 pub struct State {
     pub players: [(usize, usize); 2],
     pub board: [Array2<u8>; 2],
@@ -351,7 +351,7 @@ impl BaseEnv<State, Action> for Env {
                 }
 
                 if state.board[1][pos] == 1 && pos.1 < 8 && state.board[1][down(pos)] == 1 {
-                    return Err!("PlaceWall: cannot install wall intersecting.");
+                    return Err!("PlaceWall: cannot install horizontal wall intersecting.");
                 }
 
                 let mut state = state;
@@ -381,7 +381,7 @@ impl BaseEnv<State, Action> for Env {
                 }
 
                 if state.board[0][pos] == 1 && pos.0 < 8 && state.board[0][right(pos)] == 1 {
-                    return Err!("PlaceWall: cannot install wall intersecting.");
+                    return Err!("PlaceWall: cannot install vertical wall intersecting.");
                 }
 
                 let mut state = state;
