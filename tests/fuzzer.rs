@@ -1,4 +1,4 @@
-use std::{thread, time::Duration};
+use std::{panic, thread, time::Duration};
 
 use fights::{
     envs::BaseEnv,
@@ -87,10 +87,6 @@ fn get_all_available_action(state: &puoribor::State, agent_id: usize) -> Vec<Act
 }
 
 fn random_play_with_seed(seed: u64, delay: u64, slient: bool) {
-    if slient {
-        println!("seed: {}", seed);
-    }
-
     let mut state = puoribor::Env::initialize_state();
     let mut rng = StdRng::seed_from_u64(seed);
 
@@ -107,7 +103,7 @@ fn random_play_with_seed(seed: u64, delay: u64, slient: bool) {
             print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // clear terminal
             println!("seed: {}", seed);
             println!("{}", state);
-            println!("Will do: {:?}", action);
+            println!("Player {} will do: {:?}", agent_id, action);
         }
 
         match puoribor::Env::step(state.clone(), agent_id, action) {
@@ -134,14 +130,22 @@ fn random_play_with_seed(seed: u64, delay: u64, slient: bool) {
 
 #[test]
 fn random_play() {
-    random_play_with_seed(5468, 100, false);
+    random_play_with_seed(86548, 0, false);
 }
 
 #[test]
 fn fuzzer() {
-    (0..1_000_000)
-        .collect::<Vec<u64>>()
+    let seeds = (0..1_000_000).collect::<Vec<u64>>();
+    let error_seeds = seeds
         .par_iter()
-        .map(|i| random_play_with_seed(*i, 0, true))
-        .collect::<Vec<()>>();
+        .map(|i| {
+            (
+                i,
+                panic::catch_unwind(|| random_play_with_seed(*i, 0, true)),
+            )
+        })
+        .filter_map(|(i, result)| if result.is_ok() { None } else { Some(i) })
+        .collect::<Vec<_>>();
+
+    assert_eq!(error_seeds, Vec::<&u64>::new());
 }
