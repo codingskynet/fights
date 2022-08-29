@@ -49,11 +49,17 @@ impl Action {
  *   - 1: one-hot encoded position of vertical walls (size: (10, 9))
  * - walls: the remaing walls on each player, (player 0's, player 1's)
  */
-#[derive(Debug, Clone, Hash, PartialEq)]
+#[derive(Clone, Hash, PartialEq)]
 pub struct State {
     pub players: [(usize, usize); 2],
     pub board: [Array2<u8>; 2],
     pub remaining_walls: [usize; 2],
+}
+
+impl fmt::Debug for State {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.display_with(None))
+    }
 }
 
 impl fmt::Display for State {
@@ -133,16 +139,22 @@ impl State {
 
             // display pawn and vertical wall
             for x in 0..9 {
-                result = result + " " + if self.players[0] == (x, y) {
-                    "0"
-                } else if self.players[1] == (x, y) {
-                    "1"
-                } else if let Some((marker, ref board)) = marker_board && board[[x, y]] == 1 {
-                   marker
-                } else {
-                   " "
-                }
-                + " ";
+                result = result
+                    + " "
+                    + if self.players[0] == (x, y) {
+                        "0"
+                    } else if self.players[1] == (x, y) {
+                        "1"
+                    } else if let Some((marker, ref board)) = marker_board {
+                        if board[[x, y]] == 1 {
+                            marker
+                        } else {
+                            " "
+                        }
+                    } else {
+                        " "
+                    }
+                    + " ";
 
                 if x < 8 {
                     result += if self.board[1][[x + 1, y]] == 1 {
@@ -350,6 +362,7 @@ impl BaseEnv<State, Action> for Env {
                     return Err!("PlaceWallHorizontally: there is already horizontal wall.");
                 }
 
+                // TODO: consider of adjacent two vertical walls
                 if state.board[1][pos] == 1 && pos.1 < 8 && state.board[1][down(pos)] == 1 {
                     return Err!(
                         "PlaceWallHorizontally: cannot install horizontal wall intersecting."
