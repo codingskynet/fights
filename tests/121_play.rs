@@ -26,7 +26,7 @@ fn run_121_play() {
     while state.is_win() == -1 {
         let agent_id = iter % 2;
 
-        print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // clear terminal
+        // print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // clear terminal
         println!("{}", state);
         println!("What do you do next, player {}?", agent_id);
 

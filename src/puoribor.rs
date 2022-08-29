@@ -47,12 +47,13 @@ impl Action {
  * - board: four channel with size (9, 9). The (x, y) starts from top-left.
  *   - 0: one-hot encoded position of horizontal walls (size: (9, 10))
  *   - 1: one-hot encoded position of vertical walls (size: (10, 9))
+ *   - 2: one-hot encoded position of middle point of walls for preventing from placing a wall intersecting (size: (10, 10))
  * - walls: the remaing walls on each player, (player 0's, player 1's)
  */
 #[derive(Clone, Hash, PartialEq)]
 pub struct State {
     pub players: [(usize, usize); 2],
-    pub board: [Array2<u8>; 2],
+    pub board: [Array2<u8>; 3],
     pub remaining_walls: [usize; 2],
 }
 
@@ -72,7 +73,11 @@ impl State {
     pub fn new() -> Self {
         Self {
             players: [(4, 0), (4, 8)],
-            board: [Array2::zeros([9, 10]), Array2::zeros([10, 9])],
+            board: [
+                Array2::zeros([9, 10]),
+                Array2::zeros([10, 9]),
+                Array2::zeros([10, 10]),
+            ],
             remaining_walls: [10, 10],
         }
     }
@@ -362,8 +367,7 @@ impl BaseEnv<State, Action> for Env {
                     return Err!("PlaceWallHorizontally: there is already horizontal wall.");
                 }
 
-                // TODO: consider of adjacent two vertical walls
-                if state.board[1][pos] == 1 && pos.1 < 8 && state.board[1][down(pos)] == 1 {
+                if state.board[2][right(pos)] == 1 {
                     return Err!(
                         "PlaceWallHorizontally: cannot install horizontal wall intersecting."
                     );
@@ -373,6 +377,7 @@ impl BaseEnv<State, Action> for Env {
                 state.remaining_walls[agent_id] -= 1;
                 state.board[0][pos] = 1;
                 state.board[0][right(pos)] = 1;
+                state.board[2][right(pos)] = 1;
 
                 if !(Env::is_pawn_can_win(agent_id, &state)
                     && Env::is_pawn_can_win((agent_id + 1) % 2, &state))
@@ -399,7 +404,7 @@ impl BaseEnv<State, Action> for Env {
                     return Err!("PlaceWallVertically: there is already vertical wall.");
                 }
 
-                if state.board[0][pos] == 1 && pos.0 < 8 && state.board[0][right(pos)] == 1 {
+                if state.board[2][down(pos)] == 1 {
                     return Err!("PlaceWallVertically: cannot install vertical wall intersecting.");
                 }
 
@@ -407,6 +412,7 @@ impl BaseEnv<State, Action> for Env {
                 state.remaining_walls[agent_id] -= 1;
                 state.board[1][pos] = 1;
                 state.board[1][down(pos)] = 1;
+                state.board[2][down(pos)] = 1;
 
                 if !(Env::is_pawn_can_win(agent_id, &state)
                     && Env::is_pawn_can_win((agent_id + 1) % 2, &state))
@@ -468,6 +474,14 @@ impl BaseEnv<State, Action> for Env {
                     state.board[0][[i, 9]] = 0;
                     state.board[1][[0, i]] = 0;
                     state.board[1][[9, i]] = 0;
+                }
+
+                // remove intersecting pins
+                for i in 0..=4 {
+                    state.board[2][[pos.0, i]] = 0;
+                    state.board[2][[pos.0, i + 4]] = 0;
+                    state.board[2][[i, pos.1]] = 0;
+                    state.board[2][[i + 4, pos.1]] = 0;
                 }
 
                 if !(Env::is_pawn_can_win(agent_id, &state)
