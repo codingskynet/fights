@@ -484,6 +484,8 @@ impl BaseEnv<State, Action> for Env {
                     state.board[2][[i + 4, pos.1]] = 0;
                 }
 
+                state.remaining_walls[agent_id] -= 2;
+
                 if !(Env::is_pawn_can_win(agent_id, &state)
                     && Env::is_pawn_can_win((agent_id + 1) % 2, &state))
                 {
