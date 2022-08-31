@@ -243,29 +243,27 @@ impl Env {
         let mut visited = Array2::zeros([9, 9]);
 
         while let Some(pos) = queue.pop_front() {
-            if visited[pos] == 1 {
-                continue;
-            }
-
-            visited[pos] = 1;
-
             if pos.1 == win_y {
                 return true;
             }
 
-            if pos.1 > 0 && state.board[0][pos] != 1 {
+            if pos.1 > 0 && state.board[0][pos] != 1 && visited[up(pos)] == 0 {
+                visited[up(pos)] = 1;
                 queue.push_back(up(pos));
             }
 
-            if pos.1 < 8 && state.board[0][down(pos)] != 1 {
+            if pos.1 < 8 && state.board[0][down(pos)] != 1 && visited[down(pos)] == 0 {
+                visited[down(pos)] = 1;
                 queue.push_back(down(pos));
             }
 
-            if pos.0 > 0 && state.board[1][pos] != 1 {
+            if pos.0 > 0 && state.board[1][pos] != 1 && visited[left(pos)] == 0 {
+                visited[left(pos)] = 1;
                 queue.push_back(left(pos));
             }
 
-            if pos.0 < 8 && state.board[1][right(pos)] != 1 {
+            if pos.0 < 8 && state.board[1][right(pos)] != 1 && visited[right(pos)] == 0 {
+                visited[right(pos)] = 1;
                 queue.push_back(right(pos));
             }
         }
