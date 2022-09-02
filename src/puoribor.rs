@@ -26,8 +26,8 @@ impl From<usize> for ActionType {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Action {
-    action_type: ActionType,
-    position: Position,
+    pub action_type: ActionType,
+    pub position: Position,
 }
 
 impl Action {
