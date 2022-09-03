@@ -47,13 +47,14 @@ impl Action {
  * - board: four channel with size (9, 9). The (x, y) starts from top-left.
  *   - 0: one-hot encoded position of horizontal walls (size: (9, 10))
  *   - 1: one-hot encoded position of vertical walls (size: (10, 9))
- *   - 2: one-hot encoded position of middle point of walls for preventing from placing a wall intersecting (size: (10, 10))
+ *   - 2: one-hot encoded position of middle point of walls for preventing from placing a wall intersecting, on horizontal (size: (10, 10))
+ *   - 3: one-hot encoded position of middle point of walls for preventing from placing a wall intersecting, on vertical (size: (10, 10))
  * - walls: the remaing walls on each player, (player 0's, player 1's)
  */
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct State {
     pub players: [(usize, usize); 2],
-    pub board: [Array2<u8>; 3],
+    pub board: [Array2<u8>; 4],
     pub remaining_walls: [usize; 2],
 }
 
@@ -114,6 +115,16 @@ impl Ord for State {
                     }
                 }
 
+                for y in 0..10 {
+                    for x in 0..10 {
+                        let ord = self.board[3][[x, y]].cmp(&other.board[3][[x, y]]);
+
+                        if ord != std::cmp::Ordering::Equal {
+                            return ord;
+                        }
+                    }
+                }
+
                 unreachable!()
             } else {
                 walls_ord
@@ -143,6 +154,7 @@ impl State {
             board: [
                 Array2::zeros([9, 10]),
                 Array2::zeros([10, 9]),
+                Array2::zeros([10, 10]),
                 Array2::zeros([10, 10]),
             ],
             remaining_walls: [10, 10],
@@ -432,7 +444,7 @@ impl BaseEnv<State, Action> for Env {
                     return Err!("PlaceWallHorizontally: there is already horizontal wall.");
                 }
 
-                if state.board[2][right(pos)] == 1 {
+                if state.board[3][right(pos)] == 1 {
                     return Err!(
                         "PlaceWallHorizontally: cannot install horizontal wall intersecting."
                     );
@@ -477,7 +489,7 @@ impl BaseEnv<State, Action> for Env {
                 state.remaining_walls[agent_id] -= 1;
                 state.board[1][pos] = 1;
                 state.board[1][down(pos)] = 1;
-                state.board[2][down(pos)] = 1;
+                state.board[3][down(pos)] = 1;
 
                 if !(Env::is_pawn_can_win(agent_id, &state)
                     && Env::is_pawn_can_win((agent_id + 1) % 2, &state))
@@ -541,13 +553,26 @@ impl BaseEnv<State, Action> for Env {
                     state.board[1][[9, i]] = 0;
                 }
 
-                // remove intersecting pins
+                // rotate and remove intersecting pins
+                let mut new_hor = state.board[2].clone();
+                let mut new_ver = state.board[3].clone();
+
                 for i in 0..=4 {
-                    state.board[2][[pos.0, i]] = 0;
-                    state.board[2][[pos.0, i + 4]] = 0;
-                    state.board[2][[i, pos.1]] = 0;
-                    state.board[2][[i + 4, pos.1]] = 0;
+                    new_hor[[pos.0, pos.1 + i]] = 0;
+                    new_hor[[pos.0 + 4, pos.1 + i]] = 0;
+
+                    new_ver[[pos.0 + 4, pos.1 + i]] = state.board[2][[pos.0 + i, pos.1]];
+                    new_ver[[pos.0, pos.1 + i]] = state.board[2][[pos.0 + i, pos.1 + 4]];
+
+                    new_ver[[pos.0 + i, pos.1]] = 0;
+                    new_ver[[pos.0 + i, pos.1 + 4]] = 0;
+
+                    new_hor[[pos.0 + 4 - i, pos.1 + 4]] = state.board[3][[pos.0 + 4, pos.1 + i]];
+                    new_hor[[pos.0 + i, pos.1]] = state.board[3][[pos.0, pos.1 + 4 - i]];
                 }
+
+                state.board[2] = new_hor;
+                state.board[3] = new_ver;
 
                 state.remaining_walls[agent_id] -= 2;
 
