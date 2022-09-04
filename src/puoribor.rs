@@ -1,5 +1,6 @@
 use std::{collections::VecDeque, fmt, hash::Hash};
 
+use colored::*;
 use ndarray::Array2;
 
 use crate::{envs::*, utils::*, Err};
@@ -270,11 +271,19 @@ impl State {
                     };
 
                     if x < 8 {
-                        result += middle_intersection
+                        if self.board[2][[x + 1, y + 1]] == 1 {
+                            // middle point from horizontal
+                            result += &middle_intersection.red().to_string();
+                        } else if self.board[3][[x + 1, y + 1]] == 1 {
+                            // middle point from vertical
+                            result += &middle_intersection.blue().to_string();
+                        } else {
+                            result += middle_intersection;
+                        }
                     }
                 }
 
-                result += right_intersection;
+                result += &right_intersection;
                 result += "\n";
             }
         }
@@ -513,20 +522,20 @@ impl BaseEnv<State, Action> for Env {
                 }
 
                 // horizontal -> vertial: make position to (x, y) => (4 - y, x)
-                let mut new_vertial = Array2::zeros([5, 4]);
+                let mut new_v = Array2::zeros([5, 4]);
 
                 for y in 0..=4 {
                     for x in 0..4 {
-                        new_vertial[[4 - y, x]] = state.board[0][[pos.0 + x, pos.1 + y]];
+                        new_v[[4 - y, x]] = state.board[0][[pos.0 + x, pos.1 + y]];
                     }
                 }
 
                 // vertical -> horizontal: make positon to (x, y) => (3 - y, x)
-                let mut new_horizontal = Array2::zeros([4, 5]);
+                let mut new_h = Array2::zeros([4, 5]);
 
                 for y in 0..4 {
                     for x in 0..=4 {
-                        new_horizontal[[3 - y, x]] = state.board[1][[pos.0 + x, pos.1 + y]];
+                        new_h[[3 - y, x]] = state.board[1][[pos.0 + x, pos.1 + y]];
                     }
                 }
 
@@ -535,13 +544,13 @@ impl BaseEnv<State, Action> for Env {
                 // apply them
                 for y in 0..=4 {
                     for x in 0..4 {
-                        state.board[0][[pos.0 + x, pos.1 + y]] = new_horizontal[[x, y]];
+                        state.board[0][[pos.0 + x, pos.1 + y]] = new_h[[x, y]];
                     }
                 }
 
                 for y in 0..4 {
                     for x in 0..=4 {
-                        state.board[1][[pos.0 + x, pos.1 + y]] = new_vertial[[x, y]];
+                        state.board[1][[pos.0 + x, pos.1 + y]] = new_v[[x, y]];
                     }
                 }
 
@@ -553,26 +562,27 @@ impl BaseEnv<State, Action> for Env {
                     state.board[1][[9, i]] = 0;
                 }
 
-                // rotate and remove intersecting pins
-                let mut new_hor = state.board[2].clone();
-                let mut new_ver = state.board[3].clone();
+                // rotate to (x, y) => (4 - y, x) and remove intersecting pins
+                let mut new_h = state.board[2].clone();
+                let mut new_v = state.board[3].clone();
 
-                for i in 0..=4 {
-                    new_hor[[pos.0, pos.1 + i]] = 0;
-                    new_hor[[pos.0 + 4, pos.1 + i]] = 0;
-
-                    new_ver[[pos.0 + 4, pos.1 + i]] = state.board[2][[pos.0 + i, pos.1]];
-                    new_ver[[pos.0, pos.1 + i]] = state.board[2][[pos.0 + i, pos.1 + 4]];
-
-                    new_ver[[pos.0 + i, pos.1]] = 0;
-                    new_ver[[pos.0 + i, pos.1 + 4]] = 0;
-
-                    new_hor[[pos.0 + 4 - i, pos.1 + 4]] = state.board[3][[pos.0 + 4, pos.1 + i]];
-                    new_hor[[pos.0 + i, pos.1]] = state.board[3][[pos.0, pos.1 + 4 - i]];
+                for y in 0..=4 {
+                    for x in 0..=4 {
+                        new_h[[pos.0 + 4 - y, pos.1 + x]] = state.board[3][[pos.0 + x, pos.1 + y]];
+                        new_v[[pos.0 + 4 - y, pos.1 + x]] = state.board[2][[pos.0 + x, pos.1 + y]];
+                    }
                 }
 
-                state.board[2] = new_hor;
-                state.board[3] = new_ver;
+                for i in 0..=4 {
+                    new_h[[pos.0, pos.1 + i]] = 0;
+                    new_h[[pos.0 + 4, pos.1 + i]] = 0;
+
+                    new_v[[pos.0 + i, pos.1]] = 0;
+                    new_v[[pos.0 + i, pos.1 + 4]] = 0;
+                }
+
+                state.board[2] = new_h;
+                state.board[3] = new_v;
 
                 state.remaining_walls[agent_id] -= 2;
 
