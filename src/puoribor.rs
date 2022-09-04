@@ -554,7 +554,7 @@ impl BaseEnv<State, Action> for Env {
                     }
                 }
 
-                // remove the edge walls
+                // remove the edge walls and mid points
                 for i in 0..9 {
                     state.board[0][[i, 0]] = 0;
                     state.board[0][[i, 9]] = 0;
@@ -583,6 +583,24 @@ impl BaseEnv<State, Action> for Env {
 
                 state.board[2] = new_h;
                 state.board[3] = new_v;
+
+                // remove the edge walls and mid points
+                for i in 0..9 {
+                    state.board[0][[i, 0]] = 0;
+                    state.board[0][[i, 9]] = 0;
+                    state.board[1][[0, i]] = 0;
+                    state.board[1][[9, i]] = 0;
+
+                    state.board[2][[i, 0]] = 0;
+                    state.board[2][[i, 9]] = 0;
+                    state.board[2][[0, i]] = 0;
+                    state.board[2][[9, i]] = 0;
+
+                    state.board[3][[i, 0]] = 0;
+                    state.board[3][[i, 9]] = 0;
+                    state.board[3][[0, i]] = 0;
+                    state.board[3][[9, i]] = 0;
+                }
 
                 state.remaining_walls[agent_id] -= 2;
 
