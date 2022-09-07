@@ -5,14 +5,22 @@ macro_rules! Err {
     };
 }
 
-pub type Position = (usize, usize);
+pub type Position = (u8, u8);
+pub type PositionIdx = (usize, usize);
+
+#[inline]
+pub fn i(x: Position) -> PositionIdx {
+    (x.0 as usize, x.1 as usize)
+}
 
 // calculate ||x - y|| that the norm is L_0
+#[inline]
 pub fn diff_pos(x: Position, y: Position) -> usize {
-    x.0.abs_diff(y.0) + x.1.abs_diff(y.1)
+    (x.0.abs_diff(y.0) + x.1.abs_diff(y.1)) as usize
 }
 
 // calculate if the b is between a and c
+#[inline]
 pub fn is_mid_pos(a: Position, b: Position, c: Position) -> bool {
     if a.0 == c.0 || a.1 == c.1 {
         b == ((a.0 + c.0) / 2, (a.1 + c.1) / 2)

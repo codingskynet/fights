@@ -5,7 +5,12 @@ use fights::puoribor;
 use ndarray::Array2;
 use text_io::scan;
 
-fn get_all_available_move(state: &puoribor::State, agent_id: usize) -> Vec<(usize, usize)> {
+#[inline]
+pub fn i(x: (u8, u8)) -> (usize, usize) {
+    (x.0 as usize, x.1 as usize)
+}
+
+fn get_all_available_move(state: &puoribor::State, agent_id: usize) -> Vec<(u8, u8)> {
     (0..9)
         .flat_map(|y| (0..9).map(move |x| (x, y)))
         .filter_map(|pos| {
@@ -15,7 +20,7 @@ fn get_all_available_move(state: &puoribor::State, agent_id: usize) -> Vec<(usiz
                 None
             }
         })
-        .collect::<Vec<(usize, usize)>>()
+        .collect::<Vec<(u8, u8)>>()
 }
 
 #[test]
@@ -50,7 +55,7 @@ fn run_121_play() {
                     println!("Show next able moving(4): Print on next available movement on board by X mark.");
                 }
                 0..=3 => {
-                    let (pos_x, pos_y): (usize, usize);
+                    let (pos_x, pos_y): (u8, u8);
                     scan!("{} {}", pos_x, pos_y);
                     let action = puoribor::Action::new(command_type as usize, (pos_x, pos_y));
 
@@ -68,7 +73,7 @@ fn run_121_play() {
                     let mut marker_board = Array2::zeros([9, 9]);
 
                     for pos in pos_list {
-                        marker_board[pos] = 1;
+                        marker_board[i(pos)] = 1;
                     }
 
                     println!("{}", state.display_with(Some(("X", marker_board))));

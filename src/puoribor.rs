@@ -54,9 +54,9 @@ impl Action {
  */
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct State {
-    pub players: [(usize, usize); 2],
+    pub players: [(u8, u8); 2],
     pub board: [Array2<u8>; 4],
-    pub remaining_walls: [usize; 2],
+    pub remaining_walls: [u8; 2],
 }
 
 impl PartialOrd for State {
@@ -216,7 +216,7 @@ impl State {
 
         for y in 0..9 {
             result += &format!(" {} ", y);
-            result += if self.board[1][[0, y]] == 1 {
+            result += if self.board[1][[0, y as usize]] == 1 {
                 vertical_wall_bold
             } else {
                 vertical_wall
@@ -231,7 +231,7 @@ impl State {
                     } else if self.players[1] == (x, y) {
                         "1"
                     } else if let Some((marker, ref board)) = marker_board {
-                        if board[[x, y]] == 1 {
+                        if board[[x as usize, y as usize]] == 1 {
                             marker
                         } else {
                             " "
@@ -242,7 +242,7 @@ impl State {
                     + " ";
 
                 if x < 8 {
-                    result += if self.board[1][[x + 1, y]] == 1 {
+                    result += if self.board[1][[x as usize + 1, y as usize]] == 1 {
                         vertical_wall_bold
                     } else {
                         " "
@@ -251,7 +251,7 @@ impl State {
             }
 
             result = result
-                + if self.board[1][[9, y]] == 1 {
+                + if self.board[1][[9, y as usize]] == 1 {
                     vertical_wall_bold
                 } else {
                     vertical_wall
@@ -264,17 +264,17 @@ impl State {
                 result += left_intersection;
 
                 for x in 0..9 {
-                    result += if self.board[0][[x, y + 1]] == 1 {
+                    result += if self.board[0][[x as usize, y as usize + 1]] == 1 {
                         horizontal_wall_bold
                     } else {
                         "   "
                     };
 
                     if x < 8 {
-                        if self.board[2][[x + 1, y + 1]] == 1 {
+                        if self.board[2][[x as usize + 1, y as usize + 1]] == 1 {
                             // middle point from horizontal
                             result += &middle_intersection.red().to_string();
-                        } else if self.board[3][[x + 1, y + 1]] == 1 {
+                        } else if self.board[3][[x as usize + 1, y as usize + 1]] == 1 {
                             // middle point from vertical
                             result += &middle_intersection.blue().to_string();
                         } else {
@@ -316,10 +316,10 @@ pub struct Env {}
 impl Env {
     // check if now and new is attached and there is no wall between them
     fn is_blocked_between(now: Position, new: Position, state: &State) -> bool {
-        (now.1 > 0 && up(now) == new && state.board[0][now] == 1)
-            || (now.1 < 8 && down(now) == new && state.board[0][new] == 1)
-            || (now.0 > 0 && left(now) == new && state.board[1][now] == 1)
-            || (now.0 < 8 && right(now) == new && state.board[1][new] == 1)
+        (now.1 > 0 && up(now) == new && state.board[0][i(now)] == 1)
+            || (now.1 < 8 && down(now) == new && state.board[0][i(new)] == 1)
+            || (now.0 > 0 && left(now) == new && state.board[1][i(now)] == 1)
+            || (now.0 < 8 && right(now) == new && state.board[1][i(new)] == 1)
     }
 
     fn is_pawn_can_win(agent_id: usize, state: &State) -> bool {
@@ -335,23 +335,23 @@ impl Env {
                 return true;
             }
 
-            if pos.1 > 0 && state.board[0][pos] != 1 && visited[up(pos)] == 0 {
-                visited[up(pos)] = 1;
+            if pos.1 > 0 && state.board[0][i(pos)] != 1 && visited[i(up(pos))] == 0 {
+                visited[i(up(pos))] = 1;
                 queue.push_back(up(pos));
             }
 
-            if pos.1 < 8 && state.board[0][down(pos)] != 1 && visited[down(pos)] == 0 {
-                visited[down(pos)] = 1;
+            if pos.1 < 8 && state.board[0][i(down(pos))] != 1 && visited[i(down(pos))] == 0 {
+                visited[i(down(pos))] = 1;
                 queue.push_back(down(pos));
             }
 
-            if pos.0 > 0 && state.board[1][pos] != 1 && visited[left(pos)] == 0 {
-                visited[left(pos)] = 1;
+            if pos.0 > 0 && state.board[1][i(pos)] != 1 && visited[i(left(pos))] == 0 {
+                visited[i(left(pos))] = 1;
                 queue.push_back(left(pos));
             }
 
-            if pos.0 < 8 && state.board[1][right(pos)] != 1 && visited[right(pos)] == 0 {
-                visited[right(pos)] = 1;
+            if pos.0 < 8 && state.board[1][i(right(pos))] != 1 && visited[i(right(pos))] == 0 {
+                visited[i(right(pos))] = 1;
                 queue.push_back(right(pos));
             }
         }
@@ -402,22 +402,22 @@ impl BaseEnv<State, Action> for Env {
 
                         if !((now.1 > 0
                             && up(now) == opposite
-                            && (state.board[0][opposite] == 1 || opposite.1 == 0)
+                            && (state.board[0][i(opposite)] == 1 || opposite.1 == 0)
                             && ((now.0 > 0 && left(opposite) == new)
                                 || (now.0 < 8 && right(opposite) == new)))
                             || (now.1 < 8
                                 && down(now) == opposite
-                                && (state.board[0][down(opposite)] == 1 || opposite.1 == 8)
+                                && (state.board[0][i(down(opposite))] == 1 || opposite.1 == 8)
                                 && ((now.0 > 0 && left(opposite) == new)
                                     || (now.0 < 8 && right(opposite) == new)))
                             || (now.0 > 0
                                 && left(now) == opposite
-                                && (state.board[1][opposite] == 1 || opposite.0 == 0)
+                                && (state.board[1][i(opposite)] == 1 || opposite.0 == 0)
                                 && ((now.1 > 0 && up(opposite) == new)
                                     || (now.1 < 8 && down(opposite) == new)))
                             || (now.0 < 8
                                 && right(now) == opposite
-                                && (state.board[1][right(opposite)] == 1 || opposite.0 == 8)
+                                && (state.board[1][i(right(opposite))] == 1 || opposite.0 == 8)
                                 && ((now.1 > 0 && up(opposite) == new)
                                     || (now.1 < 8 && down(opposite) == new))))
                         {
@@ -449,11 +449,11 @@ impl BaseEnv<State, Action> for Env {
                     return Err!("PlaceWallHorizontally: out of board");
                 }
 
-                if state.board[0][pos] == 1 || state.board[0][right(pos)] == 1 {
+                if state.board[0][i(pos)] == 1 || state.board[0][i(right(pos))] == 1 {
                     return Err!("PlaceWallHorizontally: there is already horizontal wall.");
                 }
 
-                if state.board[3][right(pos)] == 1 {
+                if state.board[3][i(right(pos))] == 1 {
                     return Err!(
                         "PlaceWallHorizontally: cannot install horizontal wall intersecting."
                     );
@@ -461,9 +461,9 @@ impl BaseEnv<State, Action> for Env {
 
                 let mut state = state;
                 state.remaining_walls[agent_id] -= 1;
-                state.board[0][pos] = 1;
-                state.board[0][right(pos)] = 1;
-                state.board[2][right(pos)] = 1;
+                state.board[0][i(pos)] = 1;
+                state.board[0][i(right(pos))] = 1;
+                state.board[2][i(right(pos))] = 1;
 
                 if !(Env::is_pawn_can_win(agent_id, &state)
                     && Env::is_pawn_can_win((agent_id + 1) % 2, &state))
@@ -486,19 +486,19 @@ impl BaseEnv<State, Action> for Env {
                     return Err!("PlaceWallVertically: out of board");
                 }
 
-                if state.board[1][pos] == 1 || state.board[1][down(pos)] == 1 {
+                if state.board[1][i(pos)] == 1 || state.board[1][i(down(pos))] == 1 {
                     return Err!("PlaceWallVertically: there is already vertical wall.");
                 }
 
-                if state.board[2][down(pos)] == 1 {
+                if state.board[2][i(down(pos))] == 1 {
                     return Err!("PlaceWallVertically: cannot install vertical wall intersecting.");
                 }
 
                 let mut state = state;
                 state.remaining_walls[agent_id] -= 1;
-                state.board[1][pos] = 1;
-                state.board[1][down(pos)] = 1;
-                state.board[3][down(pos)] = 1;
+                state.board[1][i(pos)] = 1;
+                state.board[1][i(down(pos))] = 1;
+                state.board[3][i(down(pos))] = 1;
 
                 if !(Env::is_pawn_can_win(agent_id, &state)
                     && Env::is_pawn_can_win((agent_id + 1) % 2, &state))
@@ -526,7 +526,7 @@ impl BaseEnv<State, Action> for Env {
 
                 for y in 0..=4 {
                     for x in 0..4 {
-                        new_v[[4 - y, x]] = state.board[0][[pos.0 + x, pos.1 + y]];
+                        new_v[i((4 - y, x))] = state.board[0][i((pos.0 + x, pos.1 + y))];
                     }
                 }
 
@@ -535,7 +535,7 @@ impl BaseEnv<State, Action> for Env {
 
                 for y in 0..4 {
                     for x in 0..=4 {
-                        new_h[[3 - y, x]] = state.board[1][[pos.0 + x, pos.1 + y]];
+                        new_h[i((3 - y, x))] = state.board[1][i((pos.0 + x, pos.1 + y))];
                     }
                 }
 
@@ -544,13 +544,13 @@ impl BaseEnv<State, Action> for Env {
                 // apply them
                 for y in 0..=4 {
                     for x in 0..4 {
-                        state.board[0][[pos.0 + x, pos.1 + y]] = new_h[[x, y]];
+                        state.board[0][i((pos.0 + x, pos.1 + y))] = new_h[i((x, y))];
                     }
                 }
 
                 for y in 0..4 {
                     for x in 0..=4 {
-                        state.board[1][[pos.0 + x, pos.1 + y]] = new_v[[x, y]];
+                        state.board[1][i((pos.0 + x, pos.1 + y))] = new_v[i((x, y))];
                     }
                 }
 
@@ -568,17 +568,19 @@ impl BaseEnv<State, Action> for Env {
 
                 for y in 0..=4 {
                     for x in 0..=4 {
-                        new_h[[pos.0 + 4 - y, pos.1 + x]] = state.board[3][[pos.0 + x, pos.1 + y]];
-                        new_v[[pos.0 + 4 - y, pos.1 + x]] = state.board[2][[pos.0 + x, pos.1 + y]];
+                        new_h[i((pos.0 + 4 - y, pos.1 + x))] =
+                            state.board[3][i((pos.0 + x, pos.1 + y))];
+                        new_v[i((pos.0 + 4 - y, pos.1 + x))] =
+                            state.board[2][i((pos.0 + x, pos.1 + y))];
                     }
                 }
 
-                for i in 0..=4 {
-                    new_h[[pos.0, pos.1 + i]] = 0;
-                    new_h[[pos.0 + 4, pos.1 + i]] = 0;
+                for j in 0..=4 {
+                    new_h[i((pos.0, pos.1 + j))] = 0;
+                    new_h[i((pos.0 + 4, pos.1 + j))] = 0;
 
-                    new_v[[pos.0 + i, pos.1]] = 0;
-                    new_v[[pos.0 + i, pos.1 + 4]] = 0;
+                    new_v[i((pos.0 + j, pos.1))] = 0;
+                    new_v[i((pos.0 + j, pos.1 + 4))] = 0;
                 }
 
                 state.board[2] = new_h;

@@ -2,7 +2,7 @@ use std::{thread, time::Duration};
 
 use fights::{envs::BaseEnv, puoribor};
 
-fn play_from_log(actions: Vec<(usize, usize, usize)>, delay: u64) {
+fn play_from_log(actions: Vec<(usize, u8, u8)>, delay: u64) {
     let mut state = puoribor::Env::initialize_state();
 
     for (iter, action) in actions.iter().enumerate() {
