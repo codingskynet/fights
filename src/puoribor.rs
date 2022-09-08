@@ -13,8 +13,8 @@ pub enum ActionType {
     RotateSection = 3,         // rotate 4x4 section with top-left position
 }
 
-impl From<usize> for ActionType {
-    fn from(id: usize) -> Self {
+impl From<u8> for ActionType {
+    fn from(id: u8) -> Self {
         match id {
             0 => ActionType::Move,
             1 => ActionType::PlaceWallHorizontally,
@@ -27,16 +27,27 @@ impl From<usize> for ActionType {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Action {
-    pub action_type: ActionType,
-    pub position: Position,
+    action_type: u8,
+    position: u8,
 }
 
 impl Action {
-    pub fn new(action_type: usize, position: Position) -> Self {
+    #[inline]
+    pub fn new(action_type: u8, pos: Position) -> Self {
         Self {
-            action_type: ActionType::from(action_type),
-            position,
+            action_type,
+            position: (pos.0 << 4) | pos.1,
         }
+    }
+
+    #[inline]
+    pub fn action_type(&self) -> ActionType {
+        ActionType::from(self.action_type)
+    }
+
+    #[inline]
+    pub fn position(&self) -> Position {
+        ((self.position >> 4) & 0b1111, self.position & 0b1111)
     }
 }
 
@@ -370,11 +381,11 @@ impl BaseEnv<State, Action> for Env {
     }
 
     fn step(state: State, agent_id: usize, action: Action) -> Result<State, String> {
-        match action.action_type {
+        match action.action_type() {
             ActionType::Move => {
                 let opposite = state.players[(agent_id + 1) % 2];
                 let now = state.players[agent_id];
-                let new = action.position;
+                let new = action.position();
 
                 if new.0 >= 9 || new.1 >= 9 {
                     return Err!("Move: out of board");
@@ -443,7 +454,7 @@ impl BaseEnv<State, Action> for Env {
                     return Err!("PlaceWallHorizontally: there is no remaing wall for the agent.");
                 }
 
-                let pos = action.position;
+                let pos = action.position();
 
                 if pos.0 >= 8 || pos.1 == 0 || pos.1 >= 9 {
                     return Err!("PlaceWallHorizontally: out of board");
@@ -480,7 +491,7 @@ impl BaseEnv<State, Action> for Env {
                     return Err!("PlaceWallVertically: there is no remaing wall for the agent.");
                 }
 
-                let pos = action.position;
+                let pos = action.position();
 
                 if pos.0 == 0 || pos.0 >= 9 || pos.1 >= 8 {
                     return Err!("PlaceWallVertically: out of board");
@@ -515,7 +526,7 @@ impl BaseEnv<State, Action> for Env {
                     return Err!("RotationSection: there is no remainng wall for the agent.");
                 }
 
-                let pos = action.position;
+                let pos = action.position();
 
                 if pos.0 >= 6 || pos.1 >= 6 {
                     return Err!("RotationSection: out of board");

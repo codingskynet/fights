@@ -2,7 +2,7 @@ use std::{thread, time::Duration};
 
 use fights::{envs::BaseEnv, puoribor};
 
-fn play_from_log(actions: Vec<(usize, u8, u8)>, delay: u64) {
+fn play_from_log(actions: Vec<(u8, u8, u8)>, delay: u64) {
     let mut state = puoribor::Env::initialize_state();
 
     for (iter, action) in actions.iter().enumerate() {
@@ -14,10 +14,7 @@ fn play_from_log(actions: Vec<(usize, u8, u8)>, delay: u64) {
         println!("{}", state);
         println!("Player {} will do: {:?}", agent_id, action);
 
-        let action = puoribor::Action {
-            action_type: puoribor::ActionType::from(action.0),
-            position: (action.1, action.2),
-        };
+        let action = puoribor::Action::new(action.0, (action.1, action.2));
 
         match puoribor::Env::step(state.clone(), agent_id, action) {
             Ok(new_state) => {

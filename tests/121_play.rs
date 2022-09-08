@@ -57,7 +57,7 @@ fn run_121_play() {
                 0..=3 => {
                     let (pos_x, pos_y): (u8, u8);
                     scan!("{} {}", pos_x, pos_y);
-                    let action = puoribor::Action::new(command_type as usize, (pos_x, pos_y));
+                    let action = puoribor::Action::new(command_type as u8, (pos_x, pos_y));
 
                     match puoribor::Env::step(state.clone(), agent_id, action) {
                         Ok(new_state) => {
