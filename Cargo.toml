@@ -5,11 +5,12 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-ndarray = "0.15.6"
-colored = "2.0.0"
-
 [dev-dependencies]
 text_io = "0.1.12"
 rand = "0.8.5"
 rayon = "1.5.3"
+
+[dependencies]
+ndarray = { version = "0.15.6", features = ["serde"] }
+colored = "2.0.0"
+serde = { version = "1.0.144", features = ["derive"] }

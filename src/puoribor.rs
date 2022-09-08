@@ -2,10 +2,11 @@ use std::{collections::VecDeque, fmt, hash::Hash};
 
 use colored::*;
 use ndarray::Array2;
+use serde::{Deserialize, Serialize};
 
 use crate::{envs::*, utils::*, Err};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ActionType {
     Move = 0,                  // move to absolute position
     PlaceWallHorizontally = 1, // place horizontal wall with left position
@@ -25,7 +26,7 @@ impl From<u8> for ActionType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Action {
     action_type: u8,
     position: u8,
@@ -63,94 +64,11 @@ impl Action {
  *   - 3: one-hot encoded position of middle point of walls for preventing from placing a wall intersecting, on vertical (size: (10, 10))
  * - walls: the remaing walls on each player, (player 0's, player 1's)
  */
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct State {
     pub players: [(u8, u8); 2],
     pub board: [Array2<u8>; 4],
     pub remaining_walls: [u8; 2],
-}
-
-impl PartialOrd for State {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        if self == other {
-            return Some(std::cmp::Ordering::Equal);
-        }
-
-        match self.players.partial_cmp(&other.players) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-
-        self.remaining_walls.partial_cmp(&other.remaining_walls)
-    }
-}
-
-impl Ord for State {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        if self == other {
-            return std::cmp::Ordering::Equal;
-        }
-
-        let players_ord = self.players.cmp(&other.players);
-
-        if players_ord == std::cmp::Ordering::Equal {
-            let walls_ord = self.remaining_walls.cmp(&other.remaining_walls);
-
-            if walls_ord == std::cmp::Ordering::Equal {
-                for y in 0..10 {
-                    for x in 0..9 {
-                        let ord = self.board[0][[x, y]].cmp(&other.board[0][[x, y]]);
-
-                        if ord != std::cmp::Ordering::Equal {
-                            return ord;
-                        }
-                    }
-                }
-
-                for y in 0..9 {
-                    for x in 0..10 {
-                        let ord = self.board[1][[x, y]].cmp(&other.board[1][[x, y]]);
-
-                        if ord != std::cmp::Ordering::Equal {
-                            return ord;
-                        }
-                    }
-                }
-
-                for y in 0..10 {
-                    for x in 0..10 {
-                        let ord = self.board[2][[x, y]].cmp(&other.board[2][[x, y]]);
-
-                        if ord != std::cmp::Ordering::Equal {
-                            return ord;
-                        }
-                    }
-                }
-
-                for y in 0..10 {
-                    for x in 0..10 {
-                        let ord = self.board[3][[x, y]].cmp(&other.board[3][[x, y]]);
-
-                        if ord != std::cmp::Ordering::Equal {
-                            return ord;
-                        }
-                    }
-                }
-
-                unreachable!()
-            } else {
-                walls_ord
-            }
-        } else {
-            players_ord
-        }
-    }
-}
-
-impl fmt::Debug for State {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.display_with(None))
-    }
 }
 
 impl fmt::Display for State {
