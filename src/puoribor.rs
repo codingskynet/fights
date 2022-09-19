@@ -1,4 +1,8 @@
-use std::{collections::VecDeque, fmt, hash::Hash};
+use std::{
+    collections::VecDeque,
+    fmt::{self, Debug},
+    hash::Hash,
+};
 
 use colored::*;
 use ndarray::Array2;
@@ -26,10 +30,21 @@ impl From<u8> for ActionType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Action {
     action_type: u8,
     position: u8,
+}
+
+impl Debug for Action {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let pos = self.position();
+
+        f.debug_struct("Action")
+            .field("action_type", &self.action_type)
+            .field("position", &(pos.0, pos.1))
+            .finish()
+    }
 }
 
 impl Action {
